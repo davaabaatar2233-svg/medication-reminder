@@ -1,0 +1,18 @@
+# One-click deploy on Render (render.com -> New -> Blueprint -> pick this repo).
+services:
+  - type: web
+    name: sanakh
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    # One worker so only one missed-dose checker thread runs.
+    startCommand: gunicorn --workers 1 --threads 4 --bind 0.0.0.0:$PORT app:app
+    envVars:
+      - key: APP_TIMEZONE
+        value: Asia/Ulaanbaatar
+      - key: SECRET_KEY
+        generateValue: true
+      - key: CRON_KEY
+        generateValue: true
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
