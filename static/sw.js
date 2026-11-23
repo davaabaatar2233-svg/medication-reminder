@@ -1,9 +1,17 @@
+// =============================================================================
+//  PART 3 of 3 · THE SCREENS  (templates/ + static/)
+//  This file runs IN THE BACKGROUND of the phone: keeps the app's files for
+//  offline use, and handles taps on notifications ("✓ I took it").
+//  See TEAM_GUIDE.md for who explains which part.
+// =============================================================================
 // Service worker: lets phones install Sanakh to the home screen, and handles
 // notifications (including the "✓ I took it" button on a reminder).
 // It caches the app shell (CSS, JS, icon) but always fetches dose data live.
 const CACHE = "sanakh-v3";
 const SHELL = ["/static/css/style.css", "/static/js/elder.js", "/static/js/notify.js", "/static/js/i18n.js", "/static/img/icon.svg"];
 
+// WHAT THIS DOES (install / activate / fetch): save the CSS, JS and icon so
+// the screen still opens with a bad connection; dose data is always fetched live.
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)));
   self.skipWaiting();
