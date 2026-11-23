@@ -1,0 +1,26 @@
+{# Caregiver PIN: the dashboard shows health information, so it needs the PIN. #}
+{% extends "base.html" %}
+{% block title %}{{ _('pin.title') }} · Sanakh{% endblock %}
+{% block body_class %}page{% endblock %}
+{% block content %}
+<main class="wrap">
+  <section class="card">
+    <h1>🔒 {{ _('pin.title') if has_pin else _('pin.set_title') }}</h1>
+    <p>{{ _('pin.intro', name=elder.name) if has_pin else _('pin.set_intro', name=elder.name) }}</p>
+    <form method="post" class="form">
+      <input type="hidden" name="next" value="{{ next }}">
+      <label>{{ _('pin.label') }}
+        <input name="pin" required autofocus inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
+               autocomplete="{{ 'current-password' if has_pin else 'new-password' }}" class="pin-input" placeholder="••••••">
+      </label>
+      {% if not has_pin %}
+      <label>{{ _('pin.repeat') }}
+        <input name="pin2" required inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="new-password" class="pin-input" placeholder="••••••">
+      </label>
+      {% endif %}
+      <button class="btn btn-primary" type="submit">{{ _('pin.open') if has_pin else _('pin.save') }}</button>
+    </form>
+    <p class="small muted">{{ _('pin.hint') }}</p>
+  </section>
+</main>
+{% endblock %}

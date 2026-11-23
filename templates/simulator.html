@@ -1,0 +1,97 @@
+{# Simulator + 2-minute tour: shows how the algorithm decides. #}
+{% extends "base.html" %}
+{% block title %}{{ _('sim.page_title') }}{% endblock %}
+{% block body_class %}page sim-page{% endblock %}
+{% block content %}
+{# data-i18n="key" lets the page re-translate itself without a reload (used by the browser-only preview). #}
+<main class="wrap wide">
+  <header class="topbar">
+    <a href="{{ url_for('index') }}" class="brand"><img src="{{ url_for('static', filename='img/icon.svg') }}" alt="" width="32" height="32"> Sanakh</a>
+    <span class="small muted" id="preview-note" hidden data-i18n="sim.preview_note"></span>
+  </header>
+
+  <!-- 2-minute guided tour: 5 questions, each step sets up the simulator and points at the answer -->
+  <section class="card tour" id="tour" aria-live="polite"></section>
+  <section class="card">
+    <h1 data-i18n="sim.title">{{ _('sim.title') }}</h1>
+    <p class="muted" data-i18n="sim.intro">{{ _('sim.intro') }}</p>
+    <div class="rules" id="rules"></div>
+    <p class="disclaimer" data-i18n="disc.sim">{{ _('disc.sim') }}</p>
+  </section>
+
+  <div class="sim-grid">
+    <!-- ---------------------------------------------------------- inputs -->
+    <section class="card sim-inputs">
+      <h2 data-i18n="sim.h1">{{ _('sim.h1') }}</h2>
+      <div class="presets" id="presets"></div>
+
+      <h2 data-i18n="sim.h2">{{ _('sim.h2') }}</h2>
+      <div id="meds"></div>
+      <button class="btn btn-small" id="add-med" type="button" data-i18n="sim.add_med">{{ _('sim.add_med') }}</button>
+
+      <h2 data-i18n="sim.h3">{{ _('sim.h3') }}</h2>
+      <p class="small muted" data-i18n="sim.presses_hint">{{ _('sim.presses_hint') }}</p>
+      <div id="attempts"></div>
+      <button class="btn btn-small" id="add-attempt" type="button" data-i18n="sim.add_press">{{ _('sim.add_press') }}</button>
+
+      <h2 data-i18n="sim.h4">{{ _('sim.h4') }}</h2>
+      <label class="slider"><span id="l-early"></span>
+        <input type="range" id="s-early" min="0" max="120" step="5"></label>
+      <label class="slider"><span id="l-grace"></span>
+        <input type="range" id="s-grace" min="5" max="120" step="5"></label>
+      <label class="slider"><span id="l-gap"></span>
+        <input type="range" id="s-gap" min="0" max="100" step="5"></label>
+    </section>
+
+    <!-- --------------------------------------------------------- outputs -->
+    <section class="sim-outputs">
+      <div class="card now-card">
+        <div class="now-row">
+          <div>
+            <p class="muted small" data-i18n="sim.now_title">{{ _('sim.now_title') }}</p>
+            <p class="now-time"><span id="now-label">12:00</span> <span class="live-badge" id="live-badge" data-i18n="sim.live">{{ _('sim.live') }}</span></p>
+            <p class="small muted" id="tz-label"></p>
+          </div>
+          <div class="row">
+            <button class="btn" id="go-live" type="button" data-i18n="sim.now_btn">{{ _('sim.now_btn') }}</button>
+            <select id="speed" class="speed">
+              <option value="1000|5" selected data-i18n="sim.speed_slow">{{ _('sim.speed_slow') }}</option>
+              <option value="1000|10" data-i18n="sim.speed_normal">{{ _('sim.speed_normal') }}</option>
+              <option value="500|15" data-i18n="sim.speed_fast">{{ _('sim.speed_fast') }}</option>
+            </select>
+            <button class="btn btn-primary" id="play" type="button">{{ _('sim.play') }}</button>
+          </div>
+        </div>
+        <input type="range" id="now" min="0" max="1439" step="5" aria-label="{{ _('sim.now_title') }}">
+        <div class="timeline" id="timeline"></div>
+        <div class="legend small">
+          <span><i class="lg lg-window"></i><span data-i18n="sim.lg_window">{{ _('sim.lg_window') }}</span></span>
+          <span><i class="lg lg-dose"></i><span data-i18n="sim.lg_dose">{{ _('sim.lg_dose') }}</span></span>
+          <span><i class="lg lg-ok"></i><span data-i18n="sim.lg_ok">{{ _('sim.lg_ok') }}</span></span>
+          <span><i class="lg lg-bad"></i><span data-i18n="sim.lg_bad">{{ _('sim.lg_bad') }}</span></span>
+          <span><i class="lg lg-now"></i><span data-i18n="sim.lg_now">{{ _('sim.lg_now') }}</span></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2><span data-i18n="sim.status_now">{{ _('sim.status_now') }}</span> <span class="muted small" id="status-time"></span></h2>
+        <p class="small muted" data-i18n="sim.press_hint">{{ _('sim.press_hint') }}</p>
+        <ul class="decisions" id="doses"></ul>
+      </div>
+
+      <div class="card">
+        <h2><span data-i18n="sim.alerts">{{ _('sim.alerts') }}</span> <span class="count" id="alert-count">0</span></h2>
+        <ul class="alerts" id="alerts"></ul>
+      </div>
+
+      <div class="card">
+        <h2 data-i18n="sim.log">{{ _('sim.log') }}</h2>
+        <p class="small muted" data-i18n="sim.log_hint">{{ _('sim.log_hint') }}</p>
+        <ol class="log" id="log"></ol>
+      </div>
+      <p class="error" id="error" hidden></p>
+    </section>
+  </div>
+</main>
+<script src="{{ url_for('static', filename='js/simulator.js') }}"></script>
+{% endblock %}

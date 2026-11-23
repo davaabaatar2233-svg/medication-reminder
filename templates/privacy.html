@@ -1,0 +1,18 @@
+{# Privacy: what Sanakh stores, who can see it, what leaves the app, and your controls. #}
+{% extends "base.html" %}
+{% block title %}{{ _('pv.title') }} · Sanakh{% endblock %}
+{% block body_class %}page{% endblock %}
+{% block content %}
+<main class="wrap">
+  <header class="topbar"><a class="btn" href="{{ url_for('index') }}">{{ _('ph.back') }}</a></header>
+  <section class="card privacy">
+    <h1>{{ _('pv.title') }}</h1>
+    <p class="lead">{{ _('pv.intro') }}</p>
+    {% for key in ['store', 'not', 'who', 'others', 'control'] %}
+      <h2>{{ _('pv.h_' ~ key) }}</h2>
+      <p>{{ _('pv.' ~ key) }}</p>
+    {% endfor %}
+    <p class="disclaimer">{{ _('disc.long') }}</p>
+  </section>
+</main>
+{% endblock %}

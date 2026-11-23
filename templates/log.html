@@ -1,0 +1,40 @@
+{# Monthly log: calendar, month summary, one day's doses and events. #}
+{% extends "base.html" %}
+{% block title %}{{ elder.name }} · {{ _('log.title') }} · Sanakh{% endblock %}
+{% block body_class %}page{% endblock %}
+{% block content %}
+<main class="wrap wide">
+  <header class="topbar">
+    <a href="{{ url_for('caregiver', code=elder.code) }}" class="btn">{{ _('log.back') }}</a>
+    <a class="btn" href="{{ url_for('month_log_csv', code=elder.code, month=log.month) }}">{{ _('log.csv') }}</a>
+  </header>
+
+  <section class="card">
+    <p class="muted">{{ _('log.title') }} · {{ elder.name }}</p>
+    <div class="month-nav">
+      <a class="btn btn-small" href="{{ url_for('month_log', code=elder.code, month=prev_m) }}" aria-label="{{ _('log.prev') }}">←</a>
+      <h1 id="month-title">{{ log.month }}</h1>
+      <a class="btn btn-small" href="{{ url_for('month_log', code=elder.code, month=next_m) }}" aria-label="{{ _('log.next') }}">→</a>
+    </div>
+
+    <div class="summary" id="summary"></div>
+    <p class="small muted">🌍 {{ timezone }} · {{ _('log.legend') }}</p>
+  </section>
+
+  <div class="grid log-grid">
+    <section class="card">
+      <div class="cal" id="calendar"></div>
+    </section>
+    <section class="card">
+      <h2 id="day-title">{{ _('log.pick_day') }}</h2>
+      <div id="day-detail"></div>
+    </section>
+  </div>
+
+  <form method="post" action="{{ url_for('demo_month', code=elder.code) }}" class="demo-month">
+    <button class="btn btn-small btn-ghost" type="submit">{{ _('log.demo') }}</button>
+  </form>
+</main>
+<script>window.MONTH_LOG = {{ log | tojson }};</script>
+<script src="{{ url_for('static', filename='js/log.js') }}"></script>
+{% endblock %}

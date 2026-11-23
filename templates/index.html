@@ -1,0 +1,81 @@
+{# Home page: create a profile or open one with a share code. #}
+{% extends "base.html" %}
+{% block body_class %}page{% endblock %}
+{% block content %}
+<main class="wrap">
+  <header class="hero">
+    <img src="{{ url_for('static', filename='img/icon.svg') }}" alt="" width="72" height="72">
+    <h1>Sanakh</h1>
+    <p class="lead">{{ _('app.tagline') }}</p>
+  </header>
+
+  <!-- First thing judges see: one big button into the 2-minute tour -->
+  <a class="card tour-cta" href="{{ url_for('simulator', tour=1) }}">
+    <strong>{{ _('idx.tour_cta') }}</strong>
+    <span>{{ _('idx.tour_sub') }}</span>
+  </a>
+
+  <section class="card">
+    <h2>{{ _('idx.setup_title') }}</h2>
+    <form method="post" action="{{ url_for('create') }}" class="form">
+      <label>{{ _('idx.their_name') }}
+        <input name="name" required placeholder="{{ _('idx.their_name_ph') }}" autocomplete="off">
+      </label>
+      <label>{{ _('idx.your_name') }}
+        <input name="caregiver_name" placeholder="{{ _('idx.your_name_ph') }}" autocomplete="off">
+      </label>
+      <label>{{ _('pin.label') }}
+        <input name="pin" required inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="new-password" placeholder="••••••">
+      </label>
+      <label>{{ _('pin.repeat') }}
+        <input name="pin2" required inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="new-password" placeholder="••••••">
+      </label>
+      <p class="small muted">{{ _('pin.hint') }}</p>
+      <input type="hidden" name="timezone" id="tz-field">
+      <p class="small muted" id="tz-note"></p>
+      <button class="btn btn-primary" type="submit">{{ _('idx.create') }}</button>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>{{ _('idx.have_code') }}</h2>
+    <form method="post" action="{{ url_for('open_profile') }}" class="form">
+      <label>{{ _('idx.code') }}
+        <input name="code" required maxlength="6" placeholder="{{ _('idx.code_ph') }}" class="code-input" autocomplete="off">
+      </label>
+      <div class="row">
+        <button class="btn btn-primary" name="view" value="elder" type="submit">{{ _('idx.open_elder') }}</button>
+        <button class="btn" name="view" value="caregiver" type="submit">{{ _('idx.open_caregiver') }}</button>
+      </div>
+    </form>
+  </section>
+
+  <a class="card sim-link" href="{{ url_for('simulator') }}">
+    <strong>{{ _('idx.sim_link') }}</strong>
+    <span class="muted small">{{ _('idx.sim_link_sub') }}</span>
+  </a>
+
+  <a class="card sim-link" href="{{ url_for('pharmacies') }}">
+    <strong>{{ _('ph.open') }} →</strong>
+    <span class="muted small">{{ _('ph.intro') }}</span>
+  </a>
+
+  <section class="how">
+    <h2>{{ _('idx.how') }}</h2>
+    <ol>
+      <li>{{ _('idx.how1') }}</li>
+      <li>{{ _('idx.how2') }}</li>
+      <li>{{ _('idx.how3') }}</li>
+      <li>{{ _('idx.how4') }}</li>
+    </ol>
+  </section>
+</main>
+<script>
+  // Save the person's own time zone with the profile (can be changed later on the dashboard).
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    document.getElementById("tz-field").value = tz;
+    document.getElementById("tz-note").textContent = t("idx.tz_note", { tz });
+  } catch (e) {}
+</script>
+{% endblock %}

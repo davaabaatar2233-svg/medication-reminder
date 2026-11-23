@@ -1,0 +1,44 @@
+{# Shared page frame: language menu, flash messages, translations for JavaScript. #}
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1f6f5c">
+  <title>{% block title %}Sanakh{% endblock %}</title>
+  <link rel="icon" href="{{ url_for('static', filename='img/icon.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script>
+    window.LANG = "{{ lang }}";
+    window.SPEECH_LANG = "{{ speech_lang }}";
+    window.I18N = {{ i18n_json | safe }};
+  </script>
+  <script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
+  {% block head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}" {% block body_attrs %}{% endblock %}>
+  <div class="langbar">
+    <label>🌐 <span class="sr-only">{{ _('lang.label') }}</span>
+      <select id="lang-menu" aria-label="{{ _('lang.label') }}">
+        {% for code, info in languages.items() %}
+          <option value="{{ code }}" {% if code == lang %}selected{% endif %}>{{ info[0] }}</option>
+        {% endfor %}
+      </select>
+    </label>
+  </div>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flashes">
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+  <footer class="site-footer">
+    <p>{{ _('disc.short') }}</p>
+    <p><a href="{{ url_for('privacy') }}">{{ _('pv.link') }}</a></p>
+  </footer>
+</body>
+</html>

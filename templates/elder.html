@@ -1,0 +1,48 @@
+{# Elder screen: big clock, due doses, the “I took it” button. #}
+{% extends "base.html" %}
+{% block title %}Sanakh · {{ elder.name }}{% endblock %}
+{% block head %}
+  <link rel="manifest" href="{{ url_for('manifest', code=elder.code) }}">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icon.svg') }}">
+{% endblock %}
+{% block body_class %}elder{% endblock %}
+{% block body_attrs %}data-code="{{ elder.code }}" data-tz="{{ timezone }}"{% endblock %}
+{% block content %}
+<!-- Browsers only allow sound after a tap, so the first screen asks for one. -->
+<div class="start-overlay" id="start">
+  <img src="{{ url_for('static', filename='img/icon.svg') }}" alt="" width="96" height="96">
+  <h1>{{ _('el.hello', name=elder.name) }}</h1>
+  <button class="btn btn-huge btn-go" id="start-btn" type="button">{{ _('el.start') }}</button>
+  <p>{{ _('el.start_hint') }}</p>
+</div>
+
+<main class="elder-main">
+  <header class="clock">
+    <div id="clock-time">--:--</div>
+    <div id="clock-date"></div>
+  </header>
+
+  <section id="due" aria-live="polite"></section>
+
+  <section class="elder-section">
+    <h2>{{ _('el.today') }}</h2>
+    <ul class="elder-list" id="list"></ul>
+  </section>
+
+  <button class="btn btn-huge btn-ask" id="ask-btn" type="button">{{ _('el.ask') }}</button>
+  <a class="btn btn-huge btn-ask" href="{{ url_for('pharmacies', code=elder.code) }}">{{ _('ph.open') }}</a>
+  <button class="btn btn-notify" id="notify-btn" type="button"></button>
+  <p class="small muted notify-note">{{ _('nt.note') }}</p>
+</main>
+
+<div class="message" id="message" role="alertdialog" aria-live="assertive" hidden>
+  <div class="message-icon" id="message-icon"></div>
+  <p class="message-title" id="message-title"></p>
+  <p class="message-body" id="message-body"></p>
+  <button class="btn btn-huge" id="message-ok" type="button">{{ _('el.ok') }}</button>
+</div>
+
+<script src="{{ url_for('static', filename='js/notify.js') }}"></script>
+<script src="{{ url_for('static', filename='js/elder.js') }}"></script>
+{% endblock %}

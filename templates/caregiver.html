@@ -1,0 +1,149 @@
+{# Caregiver dashboard: today, last 7 days, medicines, alert settings. #}
+{% extends "base.html" %}
+{% block title %}{{ elder.name }} · {{ _('cg.title') }} · Sanakh{% endblock %}
+{% block body_class %}page{% endblock %}
+{% block body_attrs %}data-code="{{ elder.code }}"{% endblock %}
+{% block content %}
+<main class="wrap wide">
+  <header class="topbar">
+    <a href="{{ url_for('index') }}" class="brand"><img src="{{ url_for('static', filename='img/icon.svg') }}" alt="" width="32" height="32"> Sanakh</a>
+    <div class="row">
+      <a class="btn" href="{{ url_for('pharmacies', code=elder.code) }}">{{ _('ph.open') }}</a>
+      <a class="btn" href="{{ url_for('simulator') }}">{{ _('nav.simulator') }}</a>
+      <a class="btn btn-primary" href="{{ url_for('elder', code=elder.code) }}" target="_blank">{{ _('nav.open_elder') }}</a>
+    </div>
+  </header>
+
+  <section class="card intro">
+    <div>
+      <p class="muted">{{ _('cg.dashboard_for') }}</p>
+      <h1>{{ elder.name }}</h1>
+    </div>
+    <div class="share">
+      <p class="muted">{{ _('cg.share_code') }}</p>
+      <p class="code">{{ elder.code }}</p>
+      <p class="small">{{ _('cg.share_hint') }}</p>
+    </div>
+  </section>
+
+  <div class="grid">
+    <section class="card">
+      <h2>{{ _('cg.today') }} <span class="muted small" id="now"></span></h2>
+      <ul class="today" id="today"><li class="muted">{{ _('common.loading') }}</li></ul>
+      <p class="small muted">{{ _('cg.tz_note', name=elder.name, tz=timezone) }}</p>
+      <p class="small muted">{{ _('cg.updates', grace=grace) }}</p>
+      <button class="btn btn-small" id="cg-notify" type="button"></button>
+      <p class="small muted">{{ _('nt.note') }}</p>
+    </section>
+
+    <section class="card">
+      <h2>{{ _('cg.last7') }} <a class="btn btn-small log-link" href="{{ url_for('month_log', code=elder.code) }}">{{ _('log.open') }}</a></h2>
+      <div class="bars">
+        {% for d in history %}
+          {% set pct = (100 * d.taken / d.total) | round | int if d.total else 0 %}
+          <div class="bar-col" title="{{ _('cg.bar_title', day=d.day, taken=d.taken, total=d.total) }}">
+            <div class="bar-track">
+              <div class="bar {% if d.total and pct < 100 %}bar-warn{% endif %}" style="height: {{ pct if d.total else 0 }}%"></div>
+            </div>
+            <span class="bar-label">{{ d.day[8:] }}</span>
+            <span class="bar-value">{% if d.total %}{{ d.taken }}/{{ d.total }}{% else %}–{% endif %}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+
+  <div class="grid">
+    <section class="card">
+      <h2>{{ _('cg.medicines') }}</h2>
+      {% if medicines %}
+        <ul class="meds">
+          {% for m in medicines %}
+            <li>
+              <div>
+                <strong>{{ m.name }}</strong>{% if m.dose %} · {{ m.dose }}{% endif %}
+                <div class="small muted">{{ m.times.replace(',', ', ') }}{% if m.note %} · {{ m.note }}{% endif %}</div>
+              </div>
+              <form method="post" action="{{ url_for('remove_medicine', code=elder.code, medicine_id=m.id) }}"
+                    data-confirm="{{ _('cg.remove_confirm', name=m.name) }}" onsubmit="return confirm(this.dataset.confirm)">
+                <button class="btn btn-small btn-ghost" type="submit">{{ _('cg.remove') }}</button>
+              </form>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="muted">{{ _('cg.no_meds') }}</p>
+      {% endif %}
+
+      <h3>{{ _('cg.add_med') }}</h3>
+      <form method="post" action="{{ url_for('add_medicine', code=elder.code) }}" class="form">
+        <label>{{ _('cg.f_name') }} <input name="name" required placeholder="{{ _('cg.f_name_ph') }}"></label>
+        <label>{{ _('cg.f_dose') }} <input name="dose" placeholder="{{ _('cg.f_dose_ph') }}"></label>
+        <label>{{ _('cg.f_times') }} <input name="times" required placeholder="08:00, 20:00"></label>
+        <label>{{ _('cg.f_note') }} <input name="note" placeholder="{{ _('cg.f_note_ph') }}"></label>
+        <button class="btn btn-primary" type="submit">{{ _('cg.add_btn') }}</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>{{ _('cg.alerts') }}</h2>
+      {% if not telegram_ready %}
+        <p class="flash flash-error">{{ _('cg.no_telegram') }}</p>
+      {% endif %}
+      <ol class="small steps">
+        <li>{{ _('cg.step1') }}</li>
+        <li>{{ _('cg.step2') }}</li>
+        <li>{{ _('cg.step3') }}</li>
+      </ol>
+      <form method="post" action="{{ url_for('settings', code=elder.code) }}" class="form">
+        <label>{{ _('cg.s_their') }} <input name="name" value="{{ elder.name }}"></label>
+        <label>{{ _('cg.s_your') }} <input name="caregiver_name" value="{{ elder.caregiver_name }}"></label>
+        <label>{{ _('cg.s_tz', name=elder.name) }}
+          <input name="timezone" value="{{ timezone }}" list="tz-list" required autocomplete="off">
+          <span class="small muted">{{ _('cg.s_tz_hint') }} <button type="button" class="linkish" id="tz-mine">{{ _('cg.s_tz_mine') }}</button></span>
+        </label>
+        <datalist id="tz-list">{% for tz in timezones %}<option value="{{ tz }}">{% endfor %}</datalist>
+        <label>{{ _('cg.s_lang') }}
+          <select name="language">
+            {% for code, info in languages.items() %}
+              <option value="{{ code }}" {% if code == elder_lang %}selected{% endif %}>{{ info[0] }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>{{ _('cg.s_chat') }} <input name="telegram_chat_id" value="{{ elder.telegram_chat_id }}" inputmode="numeric" placeholder="{{ _('cg.s_chat_ph') }}"></label>
+        <button class="btn btn-primary" type="submit">{{ _('cg.save') }}</button>
+      </form>
+      <form method="post" action="{{ url_for('test_telegram', code=elder.code) }}">
+        <button class="btn" type="submit" {% if not elder.telegram_chat_id %}disabled{% endif %}>{{ _('cg.send_test') }}</button>
+      </form>
+
+      <h3 id="privacy">{{ _('pv.section') }}</h3>
+      <div class="row">
+        <a class="btn" href="{{ url_for('export', code=elder.code) }}">{{ _('pv.export') }}</a>
+        <form method="post" action="{{ url_for('lock', code=elder.code) }}"><button class="btn" type="submit">{{ _('pv.lock') }}</button></form>
+        <a class="btn btn-ghost" href="{{ url_for('privacy') }}">{{ _('pv.link') }}</a>
+      </div>
+      <details class="danger-zone">
+        <summary>{{ _('pv.delete_title') }}</summary>
+        <p class="small">{{ _('pv.delete_text', code=elder.code) }}</p>
+        <form method="post" action="{{ url_for('delete_profile', code=elder.code) }}" class="form">
+          <input name="confirm" required autocomplete="off" placeholder="{{ elder.code }}" aria-label="{{ _('pv.delete_title') }}">
+          <button class="btn btn-danger" type="submit">{{ _('pv.delete_btn') }}</button>
+        </form>
+      </details>
+
+      <h3>{{ _('cg.demo') }}</h3>
+      <form method="post" action="{{ url_for('demo_dose', code=elder.code) }}">
+        <button class="btn" type="submit">{{ _('cg.demo_btn') }}</button>
+      </form>
+    </section>
+  </div>
+</main>
+<script src="{{ url_for('static', filename='js/notify.js') }}"></script>
+<script src="{{ url_for('static', filename='js/caregiver.js') }}"></script>
+<script>
+  document.getElementById("tz-mine").addEventListener("click", () => {
+    try { document.querySelector("input[name=timezone]").value = Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (e) {}
+  });
+</script>
+{% endblock %}

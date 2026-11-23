@@ -1,0 +1,46 @@
+{# Pharmacy finder: nearest pharmacies on a map, sorted by the cheapest price people reported. #}
+{% extends "base.html" %}
+{% block title %}{{ _('ph.page_title') }}{% endblock %}
+{% block body_class %}page pharm-page{% endblock %}
+{% block body_attrs %}data-code="{{ elder.code if elder else '' }}"{% endblock %}
+{% block content %}
+<main class="wrap wide">
+  <header class="topbar">
+    <a class="btn" href="{{ url_for('elder', code=elder.code) if elder else url_for('index') }}">{{ _('ph.back') }}</a>
+  </header>
+
+  <section class="card">
+    <h1>{{ _('ph.title') }}</h1>
+    <p class="muted">{{ _('ph.intro') }}</p>
+
+    <label class="ph-med">{{ _('ph.medicine') }}
+      <input id="medicine" list="med-list" placeholder="{{ _('ph.medicine_ph') }}" autocomplete="off"
+             value="{{ medicines[0] if medicines else '' }}">
+    </label>
+    <datalist id="med-list">{% for m in medicines %}<option value="{{ m }}">{% endfor %}</datalist>
+    {% if medicines %}
+      <div class="chips"><span class="small muted">{{ _('ph.your_meds') }}</span>
+        {% for m in medicines %}<button type="button" class="chip" data-med="{{ m }}">{{ m }}</button>{% endfor %}
+      </div>
+    {% endif %}
+
+    <button class="btn btn-huge btn-go" id="locate" type="button">{{ _('ph.locate') }}</button>
+    <p class="ph-status" id="status" aria-live="polite"></p>
+  </section>
+
+  <section class="card ph-map-card">
+    <div class="map" id="map" role="application" aria-label="{{ _('ph.title') }}"></div>
+    <p class="small muted map-credit">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors</p>
+  </section>
+
+  <ol class="ph-list" id="list"></ol>
+
+  <section class="card ph-tip">
+    <h2>{{ _('ph.tip_title') }}</h2>
+    <p>{{ _('ph.tip') }}</p>
+  </section>
+  <p class="small muted">{{ _('ph.disclaimer') }}</p>
+  <p class="small muted">🔒 {{ _('ph.private') }}</p>
+</main>
+<script src="{{ url_for('static', filename='js/pharmacies.js') }}"></script>
+{% endblock %}

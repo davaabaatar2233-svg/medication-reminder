@@ -1,0 +1,12 @@
+{# Page shown when a page or share code doesn't exist. #}
+{% extends "base.html" %}
+{% block body_class %}page{% endblock %}
+{% block content %}
+<main class="wrap">
+  <section class="card">
+    <h1>{{ _('nf.title') }}</h1>
+    <p>{{ _('nf.text') }}</p>
+    <a class="btn btn-primary" href="{{ url_for('index') }}">{{ _('nf.home') }}</a>
+  </section>
+</main>
+{% endblock %}
