@@ -1,3 +1,9 @@
+// =============================================================================
+//  PART 3 of 3 · THE SCREENS  (templates/ + static/)
+//  This file runs the ELDER'S SCREEN: big clock, one big card per dose,
+//  spoken reminders, and the giant "I took it" button.
+//  See TEAM_GUIDE.md for who explains which part.
+// =============================================================================
 // Elder screen: shows today's doses, speaks reminders, confirms doses,
 // and warns before a double dose.
 (function () {
@@ -14,6 +20,8 @@
   const $ = (id) => document.getElementById(id);
 
   // ---------------------------------------------------------------- sound
+  // WHAT THIS DOES: plays a two-note chime and reads text out loud
+  // (the browser's built-in voice), so the elder doesn't need to read.
   let audioCtx = null;
   function chime() {
     if (!audioReady) return;
@@ -48,6 +56,7 @@
   const describe = (d) => d.dose ? `${d.name}, ${d.dose}` : d.name;
 
   // ---------------------------------------------------------------- clock
+  // WHAT THIS DOES: the big clock at the top, in the elder's own time zone.
   function tickClock() {
     // Show the clock in the elder's own time zone (same clock the server uses for reminders).
     const now = new Date();
@@ -62,6 +71,8 @@
   }
 
   // ---------------------------------------------------------------- render
+  // WHAT THIS DOES: draws the screen: the card for the dose that's due now
+  // (with the big button) and the "Today" list underneath.
   function el(tag, cls, text) {
     const node = document.createElement(tag);
     if (cls) node.className = cls;
@@ -118,6 +129,8 @@
   }
 
   // ---------------------------------------------------------------- reminders
+  // WHAT THIS DOES: when a dose is due, chime + say "Time for ..." and repeat
+  // every 5 minutes until "I took it" is pressed.
   function announce() {
     const now = Date.now();
     const toSay = doses.filter((d) =>
@@ -131,6 +144,8 @@
   }
 
   // ---------------------------------------------------------------- notifications
+  // WHAT THIS DOES: a phone notification with a "✓ I took it" button
+  // (uses notify.js + sw.js).
   // One phone notification when a dose becomes due, another if it becomes late.
   // Its "✓ I took it" button calls the same API as the big button (handled in sw.js).
   function notifyDoses() {
@@ -174,6 +189,8 @@
   }
 
   // ---------------------------------------------------------------- messages
+  // WHAT THIS DOES: the full-screen answer: green "Well done", red "Stop,
+  // already taken", or yellow "Wait until ...".
   function showMessage(kind, icon, title, body) {
     const box = $("message");
     box.className = "message " + kind;
@@ -185,6 +202,9 @@
   }
 
   // ---------------------------------------------------------------- actions
+  // WHAT THIS DOES: take() = pressing "I took it". Sends it to the server
+  // (Part 2), which asks the Brain (Part 1), then shows + speaks the answer.
+  // sayToday() = the "What have I taken today?" button.
   async function take(dose, btn) {
     if (btn) btn.disabled = true;
     try {
@@ -226,6 +246,7 @@
   }
 
   // ---------------------------------------------------------------- data
+  // WHAT THIS DOES: asks the server for today's doses every 15 seconds.
   async function load() {
     try {
       const res = await fetch(`/api/e/${CODE}/today`, { cache: "no-store" });
@@ -238,6 +259,8 @@
   }
 
   // ---------------------------------------------------------------- start
+  // WHAT THIS DOES: the "Start" tap (browsers only allow sound after a tap),
+  // connects all the buttons, and starts the clock and the 15-second refresh.
   $("start-btn").addEventListener("click", () => {
     audioReady = true;
     $("start").hidden = true;

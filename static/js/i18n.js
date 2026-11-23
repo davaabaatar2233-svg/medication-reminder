@@ -1,3 +1,8 @@
+// =============================================================================
+//  PART 3 of 3 · THE SCREENS  (templates/ + static/)
+//  This file TRANSLATES in the browser: t("key") -> text in the page's language.
+//  See TEAM_GUIDE.md for who explains which part.
+// =============================================================================
 // Translations in the browser. The page sets window.I18N (strings for the current
 // language, from languages/<lang>.json) and window.LANG before this file runs.
 (function () {

@@ -1,3 +1,9 @@
+// =============================================================================
+//  PART 3 of 3 · THE SCREENS  (templates/ + static/)
+//  This file runs the FAMILY'S DASHBOARD: today's doses with the reason for
+//  each status, and a phone notification when a dose is missed or late.
+//  See TEAM_GUIDE.md for who explains which part.
+// =============================================================================
 // Caregiver dashboard: live "Today" list, refreshed every 20 seconds.
 (function () {
   "use strict";
@@ -46,6 +52,8 @@
   });
   renderNotifyButton();
 
+  // WHAT THIS DOES: every 20 s, fetch today's doses and redraw the list
+  // (time, medicine, the Brain's reason, and a coloured status badge).
   async function load() {
     try {
       const res = await fetch(`/api/e/${CODE}/today`, { cache: "no-store" });
