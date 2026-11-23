@@ -1,4 +1,12 @@
-"""Database access and medication logic for Sanakh.
+"""
+================================================================================
+ PART 1 of 3 · THE BRAIN  (rules.py + database.py)
+ This file REMEMBERS. It saves people, medicines and doses in SQLite, and
+ asks algorithm/rules.py to decide each time something happens.
+ See TEAM_GUIDE.md for who explains which part.
+================================================================================
+
+Database access and medication logic for Sanakh.
 
 All times are stored as local wall-clock strings in the app's time zone
 (config TIMEZONE, default Asia/Ulaanbaatar):
@@ -17,6 +25,10 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from algorithm import rules
 from services import translate
 
+# WHAT THIS DOES: the database tables (like spreadsheets):
+#   elders = one person + their caregiver,  medicines = what and when,
+#   doses = one row per dose per day,       events = everything that happened,
+#   prices = medicine prices people reported at pharmacies.
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS elders (
     id               INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -89,6 +101,9 @@ CODE_LENGTH = 8          # 31^8 ≈ 850 billion codes: not guessable (older prof
 
 # --------------------------------------------------------------------------- #
 # Helpers
+# WHAT THIS DOES: time zones (each elder's own clock), opening the database,
+# reading "08:00, 20:00" typed by the caregiver, and asking rules.py for a
+# dose's status.
 # --------------------------------------------------------------------------- #
 def valid_timezone(name):
     """True if `name` is a real IANA time zone such as 'Asia/Ulaanbaatar'."""
@@ -213,6 +228,8 @@ def dose_status(dose, current):
 
 # --------------------------------------------------------------------------- #
 # Elders (one profile = one person taking medicine + their caregiver)
+# WHAT THIS DOES: create a profile (gives it a random 8-letter share code),
+# find it again by code, and change its settings.
 # --------------------------------------------------------------------------- #
 def create_elder(name, caregiver_name="", timezone="", language="en"):
     language = translate.normalize(language) or translate.DEFAULT
@@ -248,6 +265,7 @@ def update_settings(elder_id, name, caregiver_name, telegram_chat_id, timezone, 
 
 # --------------------------------------------------------------------------- #
 # Medicines
+# WHAT THIS DOES: list, add and remove the medicines on a profile.
 # --------------------------------------------------------------------------- #
 def list_medicines(elder_id):
     return get_db().execute(
@@ -277,6 +295,12 @@ def remove_medicine(elder_id, medicine_id):
 
 # --------------------------------------------------------------------------- #
 # Doses
+# WHAT THIS DOES: the heart of the app.
+#   ensure_doses()  makes today's dose rows from the medicine schedule.
+#   today_doses()   today's list, each with status + reason (from rules.py).
+#   take_dose()     "I took it": asks rules.check_confirmation(), then saves
+#                   with WHERE taken_at IS NULL so it can never save twice.
+#   find_new_missed() / record_alert()  missed doses -> Telegram alert, retried.
 # --------------------------------------------------------------------------- #
 def ensure_doses(elder_id, day):
     """Create the dose rows for `day` from each active medicine's schedule.
@@ -472,6 +496,8 @@ def history(elder_id, days=7):
 
 # --------------------------------------------------------------------------- #
 # Monthly log
+# WHAT THIS DOES: builds the calendar for one month (how many doses were
+# taken / late / missed each day), plus demo history for presentations.
 # --------------------------------------------------------------------------- #
 def month_log(elder_id, year, month):
     """Every dose and event of one month, day by day, plus a summary.
@@ -577,6 +603,8 @@ def fill_demo_month(elder_id, days=30, seed=7):
 
 # --------------------------------------------------------------------------- #
 # Medicine prices (reported by users)
+# WHAT THIS DOES: people report what a medicine cost at a pharmacy; we keep the
+# last 90 days and return the cheapest price for the pharmacy finder.
 # --------------------------------------------------------------------------- #
 import re as _re
 
@@ -629,6 +657,8 @@ def cheapest_prices(medicine, osm_ids):
 
 # --------------------------------------------------------------------------- #
 # Privacy: caregiver PIN, data export, deleting a profile
+# WHAT THIS DOES: the 6-digit PIN is stored only as a scrambled hash; 5 wrong
+# tries -> 15 min pause. Also "download all my data" and "delete everything".
 # --------------------------------------------------------------------------- #
 PIN_RE = _re.compile(r"^\d{6}$")
 PIN_MAX_FAILS = 5        # wrong tries before a pause
