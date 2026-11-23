@@ -1,4 +1,11 @@
-"""Sanakh decision rules (the algorithm), as pure functions.
+"""
+================================================================================
+ PART 1 of 3 · THE BRAIN  (rules.py + database.py)
+ This file DECIDES. It answers: is this dose due? missed? is this a double dose?
+ See TEAM_GUIDE.md for who explains which part.
+================================================================================
+
+Sanakh decision rules (the algorithm), as pure functions.
 
 No database, no Flask, no clock. Every function gets the times it needs as
 arguments, so the SAME rules run in the live app (data/database.py) and in the
@@ -43,6 +50,11 @@ from services import translate
 EN = translate.translator("en")
 
 
+# --------------------------------------------------------------------------- #
+# Settings and Decision: the two small "boxes" of data the rules pass around.
+#   Settings = the 3 numbers you can tune (early, grace, gap ratio).
+#   Decision = the answer to "I took it": ok or blocked, plus WHY.
+# --------------------------------------------------------------------------- #
 @dataclass(frozen=True)
 class Settings:
     early_minutes: int = 30     # confirmation allowed from this long before the dose time
@@ -60,6 +72,8 @@ class Decision:
 
 # --------------------------------------------------------------------------- #
 # Small helpers
+# WHAT THIS DOES: turns times into text and back ("08:30" <-> 510 minutes),
+# and 150 minutes into "2 h 30 min" for the explanations.
 # --------------------------------------------------------------------------- #
 def hm(dt):
     return dt.strftime("%H:%M")
@@ -80,6 +94,9 @@ def duration(minutes, t=EN):
 
 # --------------------------------------------------------------------------- #
 # Rule 2b helper: minimum gap between doses of one medicine
+# WHAT THIS DOES: works out how long to wait between two doses of the same
+# medicine. 08:00 + 20:00 -> 12 h apart -> must wait at least 6 h (50%).
+# (A teaching rule, not medical advice.)
 # --------------------------------------------------------------------------- #
 def min_gap(times, settings):
     """Return (gap_minutes, shortest_interval_minutes) for a medicine's daily times.
@@ -104,6 +121,9 @@ def gap_reason(times, settings, t=EN):
 
 # --------------------------------------------------------------------------- #
 # Rule 1: status of a dose at a given moment
+# WHAT THIS DOES: looks at the clock and says where a dose is right now:
+#   upcoming -> open -> due -> missed   (or taken / taken_late)
+# "missed" = 30 min after its time and still no "I took it".
 # --------------------------------------------------------------------------- #
 def deadline_of(scheduled, settings, hold_until=None):
     """When an unconfirmed dose becomes missed."""
@@ -140,6 +160,11 @@ def dose_status(scheduled, taken_at, now, settings, hold_until=None, t=EN):
 
 # --------------------------------------------------------------------------- #
 # Rule 2: should a confirmation be accepted?
+# WHAT THIS DOES: runs when "I took it" is pressed. Checks, in order:
+#   already taken?  -> "duplicate"  (blocked, family alerted)
+#   way too early?  -> "too_early"  (blocked)
+#   same medicine too soon? -> "too_close" (blocked, told when it's allowed)
+#   otherwise       -> "ok"
 # --------------------------------------------------------------------------- #
 def check_confirmation(scheduled, taken_at, now, last_taken, gap_minutes, settings, medicine=None, t=EN):
     """Decide what happens when "I took it" is pressed at `now`.
@@ -177,6 +202,8 @@ def check_confirmation(scheduled, taken_at, now, last_taken, gap_minutes, settin
 
 # --------------------------------------------------------------------------- #
 # Rule 3: caregiver alert texts
+# WHAT THIS DOES: writes the message the family receives on Telegram
+# (missed / double dose / too close / taken late), in their language.
 # --------------------------------------------------------------------------- #
 def alert_text(kind, elder, medicine, dose_time, at=None, allowed_after=None, t=EN):
     """kind: missed | duplicate | too_close | taken_late"""
@@ -190,6 +217,9 @@ def alert_text(kind, elder, medicine, dose_time, at=None, allowed_after=None, t=
 
 # --------------------------------------------------------------------------- #
 # Simulation: replay one day with the rules above
+# WHAT THIS DOES: powers the /simulator page. Takes a pretend schedule and
+# pretend button presses, runs Rules 1-3 on them, and returns every decision
+# with its reason. Nothing is saved. Same rules as the real app.
 # --------------------------------------------------------------------------- #
 def simulate(medicines, attempts, now, settings, elder=None, t=EN):
     """Replay a day and return every decision with its reason.
