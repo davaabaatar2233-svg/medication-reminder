@@ -1,4 +1,13 @@
-"""Sanakh: a voice-first medication buddy for elders and their families.
+"""
+================================================================================
+ PART 2 of 3 · THE SERVER  (app.py + services/ + languages/)
+ This file is the FRONT DOOR. Every page and every button press arrives here,
+ gets checked (PIN, firewall), is passed to the Brain (Part 1), and the answer
+ is sent back to the Screens (Part 3).
+ See TEAM_GUIDE.md for who explains which part.
+================================================================================
+
+Sanakh: a voice-first medication buddy for elders and their families.
 
 Run locally:   python app.py           then open http://localhost:5000
 """
@@ -19,6 +28,10 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TIMEZONES = sorted(tz for tz in available_timezones() if "/" in tz and not tz.startswith(("Etc/", "SystemV/", "posix/", "right/")))
 
 
+# ------------------------------------------------------------------ setup
+# WHAT THIS DOES: builds the app. Reads the settings (grace 30 min, early
+# 30 min, gap 50% ...), opens the database, switches on the firewall,
+# adds all the pages, and starts the every-minute missed-dose checker.
 def create_app(test_config=None):
     app = Flask(__name__)
     app.config.update(
@@ -77,6 +90,9 @@ def _saved_secret_key(folder):
     return key
 
 
+# ---------------------------------------------------------------- helpers
+# WHAT THIS DOES: small tools used by the pages below: "has this device typed
+# the PIN?", "translate this text", "find the profile or show 404".
 def is_unlocked(elder):
     """Has this device entered the caregiver PIN for this profile?"""
     return elder["code"] in session.get("unlocked", [])
@@ -110,7 +126,12 @@ def load_elder(code):
 
 
 def register_routes(app):
+    # WHAT THIS DOES: every URL of the app. Each @app.get / @app.post below is
+    # one page or one button.
+
     # -------------------------------------------------------------- language
+    # Runs before EVERY page: picks the language, asks for the caregiver PIN
+    # on /c/ pages, and adds privacy headers to every answer.
     @app.before_request
     def pick_language():
         """?lang=xx  >  saved choice (cookie)  >  browser language  >  English."""
@@ -164,6 +185,7 @@ def register_routes(app):
         return resp
 
     # ------------------------------------------------------------------ home
+    # Home page: create a new profile (name + 6-digit PIN) or open one by code.
     @app.get("/")
     def index():
         return render_template("index.html")
@@ -200,6 +222,8 @@ def register_routes(app):
         return redirect(url_for(view, code=code))
 
     # ------------------------------------------------------------- caregiver
+    # The family's dashboard (/c/<code>): see today, add / remove medicines,
+    # and a demo button that adds a dose due in 1 minute.
     @app.get("/c/<code>")
     def caregiver(code):
         elder = load_elder(code)
@@ -249,6 +273,7 @@ def register_routes(app):
         return redirect(url_for("caregiver", code=elder["code"]))
 
     # ----------------------------------------------------------- monthly log
+    # Calendar of one month, and the same month as a CSV file for the doctor.
     def _month_arg(elder):
         """?month=YYYY-MM, default: this month in the elder's time zone."""
         raw = request.args.get("month", "")
@@ -299,6 +324,8 @@ def register_routes(app):
         return redirect(url_for("month_log", code=elder["code"]))
 
     # ------------------------------------------------------ privacy and PIN
+    # Unlock with the PIN, lock this device, download all data, delete the
+    # profile, change settings, and send a test Telegram message.
     @app.route("/c/<code>/unlock", methods=["GET", "POST"])
     def unlock(code):
         elder = load_elder(code)
@@ -381,6 +408,8 @@ def register_routes(app):
         return redirect(url_for("caregiver", code=elder["code"]))
 
     # ----------------------------------------------------------------- elder
+    # The elder's screen (/e/<code>): no PIN needed. Also the files that let a
+    # phone "Add to Home screen" and show notifications (manifest, sw.js).
     @app.get("/e/<code>")
     def elder(code):
         elder = load_elder(code)
@@ -409,6 +438,10 @@ def register_routes(app):
         return send_from_directory(app.static_folder, "sw.js", mimetype="application/javascript")
 
     # ------------------------------------------------------------------- API
+    # What the JavaScript talks to (answers in JSON, not HTML):
+    #   /today  -> today's doses with status + reason
+    #   /take   -> "I took it": the Brain decides, then we alert the family
+    #              on Telegram if it was a double dose or a late dose.
     @app.get("/api/e/<code>/today")
     def api_today(code):
         elder = load_elder(code)
@@ -451,6 +484,7 @@ def register_routes(app):
         })
 
     # ---------------------------------------------------- pharmacy finder
+    # The map page, plus reading and adding medicine prices.
     @app.get("/pharmacies")
     def pharmacies():
         """Map of nearby pharmacies with user-reported prices. ?code= adds the elder's medicines."""
@@ -473,6 +507,8 @@ def register_routes(app):
         return jsonify({"ok": True}), 201
 
     # ------------------------------------------------------------- simulator
+    # The simulator page, and /api/simulate which runs rules.simulate().
+    # /api/check-missed lets an outside timer run the missed-dose check.
     @app.get("/simulator")
     def simulator():
         return render_template("simulator.html")
@@ -522,6 +558,8 @@ def register_routes(app):
         return render_template("404.html"), 404
 
 
+# ------------------------------------------------------------------ start
+# WHAT THIS DOES: builds the app and, with "python app.py", starts it on port 5000.
 app = create_app()
 
 if __name__ == "__main__":
