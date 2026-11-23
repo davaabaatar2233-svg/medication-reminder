@@ -1,3 +1,9 @@
+// =============================================================================
+//  PART 3 of 3 · THE SCREENS  (templates/ + static/)
+//  This file runs the PHARMACY FINDER: your location -> nearby pharmacies on
+//  a map -> cheapest price people reported -> Directions / Call buttons.
+//  See TEAM_GUIDE.md for who explains which part.
+// =============================================================================
 // Pharmacy finder: where am I → nearby pharmacies (OpenStreetMap) → cheapest reported price.
 // The map is drawn here from OpenStreetMap tiles (no map library needed).
 (function () {

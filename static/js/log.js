@@ -1,3 +1,9 @@
+// =============================================================================
+//  PART 3 of 3 · THE SCREENS  (templates/ + static/)
+//  This file draws the MONTHLY LOG: a green / yellow / red calendar and,
+//  when you tap a day, every dose and event of that day.
+//  See TEAM_GUIDE.md for who explains which part.
+// =============================================================================
 // Monthly log: calendar coloured by how many doses were taken, plus the detail of one day.
 (function () {
   "use strict";

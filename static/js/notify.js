@@ -1,3 +1,9 @@
+// =============================================================================
+//  PART 3 of 3 · THE SCREENS  (templates/ + static/)
+//  This file shows PHONE NOTIFICATIONS: asks permission once, shows each
+//  notification only once per day, and uses sw.js so buttons work.
+//  See TEAM_GUIDE.md for who explains which part.
+// =============================================================================
 // Phone / desktop notifications, shared by the elder screen and the caregiver dashboard.
 // Uses the service worker when possible: Android Chrome only allows notifications
 // (and buttons on them, like "I took it") through a service worker.

@@ -1,3 +1,9 @@
+// =============================================================================
+//  PART 3 of 3 · THE SCREENS  (templates/ + static/)
+//  This file runs the SIMULATOR page: you change the schedule, button presses
+//  or the clock, and it shows what the Brain (Part 1) decides, with reasons.
+//  See TEAM_GUIDE.md for who explains which part.
+// =============================================================================
 // Interactive simulator: every change is sent to /api/simulate, which runs
 // the same Python rules as the live app (algorithm/rules.py) and returns the decisions.
 (function () {
