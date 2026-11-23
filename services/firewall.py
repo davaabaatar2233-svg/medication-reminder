@@ -1,4 +1,11 @@
-"""Firewall: a small shield in front of every page.
+"""
+================================================================================
+ PART 2 of 3 · THE SERVER  (app.py + services/ + languages/)
+ This file is the BOUNCER. It checks every visitor before any page runs.
+ See TEAM_GUIDE.md for who explains which part.
+================================================================================
+
+Firewall: a small shield in front of every page.
 
 It runs before any route and stops four kinds of bad traffic:
 

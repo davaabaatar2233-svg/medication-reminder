@@ -1,4 +1,12 @@
-"""Caregiver alerts: Telegram messages and the background missed-dose checker.
+"""
+================================================================================
+ PART 2 of 3 · THE SERVER  (app.py + services/ + languages/)
+ This file TELLS THE FAMILY. It sends Telegram messages and, every minute,
+ looks for missed doses.
+ See TEAM_GUIDE.md for who explains which part.
+================================================================================
+
+Caregiver alerts: Telegram messages and the background missed-dose checker.
 
 Uses only the Python standard library (urllib), no extra packages.
 """
@@ -17,6 +25,9 @@ from services import translate
 log = logging.getLogger("sanakh.alerts")
 
 
+# ---------------------------------------------------------------- Telegram
+# WHAT THIS DOES: sends one message to the caregiver's Telegram. It only
+# counts as sent if Telegram itself replies "ok".
 def telegram_configured(chat_id):
     """Can an alert be sent at all? Needs the bot token on the server and the caregiver's chat ID."""
     return bool(os.environ.get("TELEGRAM_BOT_TOKEN")) and bool((chat_id or "").strip())
@@ -37,6 +48,10 @@ def send_telegram(chat_id, text):
         return False
 
 
+# --------------------------------------------------- missed-dose checker
+# WHAT THIS DOES: every minute -> ask the database for newly missed doses ->
+# send each one to Telegram -> save what really happened (sent / failed,
+# retried up to 5 times / Telegram not set up).
 def missed_message(dose):
     """Missed-dose alert in the language saved on the profile."""
     t = translate.translator(dose.get("language") or translate.DEFAULT)

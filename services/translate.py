@@ -1,4 +1,11 @@
-"""Translations for Sanakh.
+"""
+================================================================================
+ PART 2 of 3 · THE SERVER  (app.py + services/ + languages/)
+ This file SPEAKS 9 LANGUAGES. t("key") -> the sentence in the chosen language.
+ See TEAM_GUIDE.md for who explains which part.
+================================================================================
+
+Translations for Sanakh.
 
 All text lives in languages/<lang>.json as  "key": "Text with {placeholders}".
 English (en.json) is the base: a key missing in another language falls back to English.
